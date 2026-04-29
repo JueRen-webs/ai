@@ -75,7 +75,7 @@ class GlassIdentityCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text("LEE ROU", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: colors.brandPrimary)),
                     const SizedBox(height: 2),
-                    Text("(Matrics Number: AI230199)", style: GoogleFonts.poppins(fontSize: 12, color: colors.brandPrimary.withOpacity(0.8))),
+                    Text("Matrics No: AI230199", style: GoogleFonts.poppins(fontSize: 12, color: colors.primaryText.withOpacity(0.7))),
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
