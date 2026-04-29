@@ -1,10 +1,15 @@
-/*import 'package:flutter/material.dart';
+/*import 'dart:ui';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-// 1. Import url_launcher to enable website navigation
 import 'package:url_launcher/url_launcher.dart';
-// --- 注入：引入 main.dart 以使用全局 Key ---
+
+// --- 全局配置与主题引入 ---
 import '../main.dart';
 import 'package:uthm/theme/app_colors.dart';
+
+// --- 独立页面引入 ---
+import 'academic_calendar_page.dart';
+import 'virtual_id_page.dart';
 
 // =======================================================
 //           CLASS 1: PROFILE PAGE (Main Tab)
@@ -12,11 +17,10 @@ import 'package:uthm/theme/app_colors.dart';
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
-  // 2. Helper function to open the website
+  // Helper function to open the website
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);
     try {
-      // mode: LaunchMode.externalApplication opens it in Chrome/Safari instead of inside the app
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         throw Exception('Could not launch $url');
       }
@@ -28,257 +32,257 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: colors.background,
-      // --- AppBar ---
-      appBar: AppBar(
-        backgroundColor: colors.brandPrimary,
-        automaticallyImplyLeading: false,
-        title: Text(
-          "Profile",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: colors.background, // 保持全局底层是背景色
+      // 最外层使用 Stack，用于分离“滑动内容”和“固定悬浮按钮”
+      body: Stack(
+        children: [
+          // ==========================================
+          // 图层 1：可滑动的主体内容（包含背景）
+          // ==========================================
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Stack(
+              clipBehavior: Clip.none, // 核心技巧：允许超出边界的绘制，用来掩盖下拉白边
+              children: [
+                // 核心修复：在页面的正上方（-1000的高度）画一个纯蓝色的背景。
+                // 这样当你用力往下拉（回弹）时，露出来的全都是这个蓝色，再也不会有白底了！
+                Positioned(
+                  top: -1000,
+                  left: 0,
+                  right: 0,
+                  height: 1000,
+                  child: Container(color: colors.brandPrimary),
+                ),
 
-      // --- Body Content ---
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 30),
-
-            // 1. Profile Header (Photo & Name)
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      shape: BoxShape.circle,
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
-                      ],
+                // 跟着页面一起滑动的渐变背景
+                Container(
+                  height: 240,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [colors.brandPrimary, colors.background],
+                      stops: const [0.4, 1.0],
                     ),
-                    child: CircleAvatar(
-                      radius: 60,
-                      backgroundColor: colors.secondaryText,
-                      backgroundImage: const AssetImage('assets/me.jpg'),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "LEE ROU",
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: colors.brandPrimary, // 使用库颜色
-                    ),
-                  ),
-                  Text(
-                    "Matric No: AI248888",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: colors.secondaryText, // 使用库颜色
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // 2. Student Details Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionLabel(context, "Student Details"),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: _buildCardDecoration(context),
-                    child: Column(
-                      children: [
-                        // --- 3. Faculty Row with Click Action ---
-                        _buildInfoRow(
-                          context,
-                          Icons.domain,
-                          "Faculty",
-                          "FSKTM",
-                          onTap: () => _launchURL(
-                              "https://fsktm.uthm.edu.my/"), // Opens the website
-                        ),
-
-                        Divider(height: 30, color: colors.borderColor),
-                        _buildInfoRow(context,Icons.school, "Course",
-                            "Bachelor of Computer Science (Multimedia Computing)"),
-                        Divider(height: 30, color: colors.borderColor),
-                        _buildInfoRow(context,Icons.email_outlined, "Email",
-                            "ai248888@student.uthm.edu.my"),
-                        Divider(height: 30, color: colors.borderColor),
-                        _buildInfoRow(
-                            context,Icons.phone_iphone, "Phone", "+60 12-345 6789"),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 3. Contact Us (Expandable List)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                // 注意：_buildCardDecoration 也要传入 context 才能拿颜色
-                decoration: _buildCardDecoration(context),
-                child: Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    leading: Icon(
-                      Icons.support_agent,
-                      color: context.colors.brandPrimary, // 换成品牌主色
-                      size: 28,
-                    ),
-                    title: Text(
-                      "Contact Us",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: context.colors.primaryText, // 换成主文字颜色
-                      ),
-                    ),
-                    childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    children: [Divider(height: 1, color: context.colors.borderColor), // 分割线颜色
-                      const SizedBox(height: 20),
-                      _buildContactCard(
-                        context, // 别忘了传 context 进去
-                        deptName: "Universiti Tun Hussein Onn Malaysia (UTHM)",
-                        address: "86400 Parit Raja Batu Pahat Johor\nMalaysia",
-                        phone: "+607-453 7000",
-                        fax: "+607-453 6337",
-                        email: "pro@uthm.edu.my",
-                        web: "http://www.uthm.edu.my",
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSectionSubLabel(context, "Postgraduate (Master & PhD)"),
-                      _buildContactCard(
-                        context,
-                        deptName: "Centre for Graduate Studies",
-                        address: "86400 Parit Raja Batu Pahat Johor",
-                        phone: "+607-453 7757 / 7509",
-                        fax: "+607-453 6111",
-                        email: "ps@uthm.edu.my",
-                        web: "http://cgs.uthm.edu.my",
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSectionSubLabel(context,"Undergraduate (Diploma & Degree)"),
-                      _buildContactCard(
-                        context,
-                        deptName: "Academic Management Office",
-                        address: "86400 Parit Raja Batu Pahat Johor",
-                        phone: "+607-453 7696",
-                        fax: "+607-453 6085",
-                        email: "pa@uthm.edu.my",
-                        web: "http://ppa.uthm.edu.my",
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSectionSubLabel(context,"International Student"),
-                      _buildContactCard(
-                        context,
-                        deptName: "International Office",
-                        address: "86400 Parit Raja Batu Pahat Johor",
-                        phone: "+607-453 8514 / 8515",
-                        fax: "+607-453 8516",
-                        email: "io@uthm.edu.my",
-                        web: "http://io.uthm.edu.my",
-                      ),
-                    ],
                   ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 30),
+                // 滑动的主体内容
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 给右上角的悬浮设置按钮留出足够的空间，防止名片顶上去被挡住
+                        const SizedBox(height: 60),
 
-            // 4. Action Buttons Area
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  // --- A. 学术日历按钮 (调用助手方法) ---
-                  _buildActionButton(
-                    context,
-                    "Academic Calendar",
-                    Icons.calendar_month,
-                    isPrimary: false,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AcademicCalendarPage()),
-                      );
-                    },
+                        // --- 1. 名片卡片 ---
+                        const _GlassIdentityCard(),
+                        const SizedBox(height: 18),
+
+                        // --- 2. 14格周进度 ---
+                        const _WeekGridProgress(),
+                        const SizedBox(height: 18),
+
+                        // --- 3. 四合一数据栏 ---
+                        const _StatsRowBar(),
+                        const SizedBox(height: 18),
+
+                        // --- 4. Student Details Card ---
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: _buildCardDecoration(context),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Student Details", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: colors.primaryText)),
+                              const SizedBox(height: 16),
+
+                              _buildInfoRow(
+                                context,
+                                Icons.domain,
+                                "Faculty",
+                                "FSKTM",
+                                onTap: () => _launchURL("https://fsktm.uthm.edu.my/"),
+                              ),
+                              Divider(height: 30, color: colors.borderColor),
+                              _buildInfoRow(context, Icons.school, "Course", "Bachelor of Computer Science\n(Multimedia Computing)"),
+                              Divider(height: 30, color: colors.borderColor),
+                              _buildInfoRow(context, Icons.email_outlined, "Email", "ai248888@student.uthm.edu.my"),
+                              Divider(height: 30, color: colors.borderColor),
+                              _buildInfoRow(context, Icons.phone_iphone, "Phone", "+60 12-345 6789"),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // --- 5. 紧急联系人 (Next of Kin) ---
+                        Container(
+                          decoration: _buildCardDecoration(context),
+                          child: Theme(
+                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                            child: ExpansionTile(
+                              tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              leading: Icon(Icons.group_outlined, color: colors.error, size: 28),
+                              title: Text(
+                                "Next of Kin (Emergency)",
+                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: colors.primaryText),
+                              ),
+                              childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                              children: [
+                                Divider(height: 1, color: colors.borderColor),
+                                const SizedBox(height: 20),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                      color: colors.cardAlt,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: colors.borderColor)
+                                  ),
+                                  child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text("Lee Kah", style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: colors.primaryText)),
+                                        const SizedBox(height: 8),
+                                        _buildContactRow(context, Icons.supervised_user_circle, "Relationship: Guardian"),
+                                        _buildContactRow(context, Icons.phone, "+60 17-999 8888"),
+                                      ]
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // --- 6. Contact Us ---
+                        Container(
+                          decoration: _buildCardDecoration(context),
+                          child: Theme(
+                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                            child: ExpansionTile(
+                              tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              leading: Icon(
+                                Icons.support_agent,
+                                color: colors.brandPrimary,
+                                size: 28,
+                              ),
+                              title: Text(
+                                "Contact Us",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.primaryText,
+                                ),
+                              ),
+                              childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                              children: [
+                                Divider(height: 1, color: colors.borderColor),
+                                const SizedBox(height: 20),
+                                _buildContactCard(
+                                  context,
+                                  deptName: "Universiti Tun Hussein Onn Malaysia (UTHM)",
+                                  address: "86400 Parit Raja Batu Pahat Johor\nMalaysia",
+                                  phone: "+607-453 7000",
+                                  fax: "+607-453 6337",
+                                  email: "pro@uthm.edu.my",
+                                  web: "http://www.uthm.edu.my",
+                                ),
+                                const SizedBox(height: 16),
+                                _buildSectionSubLabel(context, "Postgraduate (Master & PhD)"),
+                                _buildContactCard(
+                                  context,
+                                  deptName: "Centre for Graduate Studies",
+                                  address: "86400 Parit Raja Batu Pahat Johor",
+                                  phone: "+607-453 7757 / 7509",
+                                  fax: "+607-453 6111",
+                                  email: "ps@uthm.edu.my",
+                                  web: "http://cgs.uthm.edu.my",
+                                ),
+                                const SizedBox(height: 16),
+                                _buildSectionSubLabel(context, "Undergraduate (Diploma & Degree)"),
+                                _buildContactCard(
+                                  context,
+                                  deptName: "Academic Management Office",
+                                  address: "86400 Parit Raja Batu Pahat Johor",
+                                  phone: "+607-453 7696",
+                                  fax: "+607-453 6085",
+                                  email: "pa@uthm.edu.my",
+                                  web: "http://ppa.uthm.edu.my",
+                                ),
+                                const SizedBox(height: 16),
+                                _buildSectionSubLabel(context, "International Student"),
+                                _buildContactCard(
+                                  context,
+                                  deptName: "International Office",
+                                  address: "86400 Parit Raja Batu Pahat Johor",
+                                  phone: "+607-453 8514 / 8515",
+                                  fax: "+607-453 8516",
+                                  email: "io@uthm.edu.my",
+                                  web: "http://io.uthm.edu.my",
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // --- 7. Action Buttons Area ---
+                        Column(
+                          children: [
+                            _buildActionButton(
+                              context,
+                              "Academic Calendar",
+                              Icons.calendar_month,
+                              isPrimary: false,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const AcademicCalendarPage()),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildLogoutButton(context),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // --- B. 虚拟 ID 按钮 (调用助手方法) ---
-                  _buildActionButton(
-                    context,
-                    "My Virtual ID",
-                    Icons.badge,
-                    isPrimary: true,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const VirtualIdPage()),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // --- C. 注销按钮 (调用助手方法) ---
-                  // 这里的弹窗逻辑已经封装在底下的 _buildLogoutButton 里面了，不用重复写
-                  _buildLogoutButton(context),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
 
-            const SizedBox(height: 40),
-          ], // 结束 Column 的 children
-        ), // 结束 Column
-      ), // 结束 SingleChildScrollView
-    ); // 结束 Scaffold
-  }
-
-  // --- Helper Methods (以下内容全部保留) ---
-  BoxDecoration _buildCardDecoration(BuildContext context) {
-    return BoxDecoration(
-      color: context.colors.surface, // 现在你可以用 context 拿颜色了！
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0D000000),
-          blurRadius: 10,
-          offset: Offset(0, 4),
-        )
-      ],
+          // ==========================================
+          // 图层 2：固定在右上角的设置按钮 (悬浮窗)
+          // ==========================================
+          Positioned(
+            // 高度由 SafeArea 的顶部距离 + 16 决定，不会被刘海挡住，也不会贴着最顶上
+            top: MediaQuery.of(context).padding.top + 16,
+            // 距离右边框 20，不会太贴边缘
+            right: 20,
+            child: const _SettingsButton(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSectionLabel(BuildContext context, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0, left: 4),
-      child: Text(label, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: context.colors.brandPrimary)),
+  // =======================================================
+  // --- Helper Methods ---
+  // =======================================================
+
+  BoxDecoration _buildCardDecoration(BuildContext context) {
+    return BoxDecoration(
+      color: context.colors.surface,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))],
     );
   }
 
@@ -289,19 +293,14 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value,
-      {VoidCallback? onTap}) {
-    final colors = context.colors; // 拿到颜色库
-
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value, {VoidCallback? onTap}) {
+    final colors = context.colors;
     Widget row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            // 使用库里的品牌色，并设置透明度
-              color: colors.brandPrimary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: colors.brandPrimary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
           child: Icon(icon, size: 20, color: colors.brandPrimary),
         ),
         const SizedBox(width: 16),
@@ -309,15 +308,12 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: colors.secondaryText)), // 使用次要文字颜色
+              Text(label, style: GoogleFonts.poppins(fontSize: 12, color: colors.secondaryText)),
               const SizedBox(height: 2),
               Text(value,
                   style: GoogleFonts.poppins(
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    // 如果能点，就用蓝色；不能点，就用主文字颜色
                     color: onTap != null ? colors.brandPrimary : colors.primaryText,
                     decoration: onTap != null ? TextDecoration.underline : null,
                     decorationColor: colors.brandPrimary,
@@ -325,17 +321,12 @@ class ProfilePage extends StatelessWidget {
             ],
           ),
         ),
-        if (onTap != null)
-          Icon(Icons.open_in_new, size: 16, color: colors.brandPrimary),
+        if (onTap != null) Icon(Icons.open_in_new, size: 16, color: colors.brandPrimary),
       ],
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: row,
-      );
+      return GestureDetector(onTap: onTap, behavior: HitTestBehavior.opaque, child: row);
     }
     return row;
   }
@@ -365,7 +356,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  // 这里的按钮我也帮你用主题色重构了
   Widget _buildActionButton(BuildContext context, String label, IconData icon, {required bool isPrimary, required VoidCallback onTap}) {
     final colors = context.colors;
     return SizedBox(
@@ -421,54 +411,125 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class AcademicCalendarPage extends StatelessWidget {
-  const AcademicCalendarPage({super.key});
+// =======================================================
+//   下方是独立的新 UI 组件
+// =======================================================
+
+// --- 带有光圈和 Hover 效果的专属设置按钮 ---
+class _SettingsButton extends StatefulWidget {
+  const _SettingsButton();
+
+  @override
+  State<_SettingsButton> createState() => _SettingsButtonState();
+}
+
+class _SettingsButtonState extends State<_SettingsButton> {
+  bool _isHovering = false;
 
   @override
   Widget build(BuildContext context) {
-    // 同样拿到颜色包
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: () {
+          // 在这里加入你的 Settings 点击事件
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            // 悬停时背景变得更白
+            color: _isHovering ? Colors.white.withOpacity(0.3) : Colors.white.withOpacity(0.15),
+            border: Border.all(
+              // 悬停时边框高亮
+              color: Colors.white.withOpacity(_isHovering ? 0.8 : 0.4),
+              width: 1.5,
+            ),
+            boxShadow: _isHovering ? [
+              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
+            ] : [],
+          ),
+          child: const Icon(Icons.settings_outlined, color: Colors.white, size: 22),
+        ),
+      ),
+    );
+  }
+}
+
+// --- 玻璃拟物化身份卡片 ---
+class _GlassIdentityCard extends StatelessWidget {
+  const _GlassIdentityCard();
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: colors.brandPrimary, // 替换 kPrimaryBlue
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "Academic Calendar",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const VirtualIdPage()),
+        );
+      },
+      child: Center(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          panEnabled: true,
-          minScale: 0.5,
-          maxScale: 4.0,
-          child: Image.asset(
-            'assets/image.png',
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.broken_image, color: Colors.white, size: 50),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Image not found.\nPlease ensure 'assets/image.png' exists.",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(color: Colors.white),
-                  ),
-                ],
-              );
-            },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: colors.background,
+                      backgroundImage: const AssetImage('assets/me.jpg'),
+                    ),
+                    const SizedBox(height: 8),
+                    Text("LEE ROU", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: colors.brandPrimary)),
+                    const SizedBox(height: 2),
+                    Text("Matrics No: AI230199", style: GoogleFonts.poppins(fontSize: 12, color: colors.brandPrimary.withOpacity(0.8))),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colors.brandPrimary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.qr_code_2, size: 14, color: colors.brandPrimary),
+                          const SizedBox(width: 4),
+                          Text("My Virtual ID", style: GoogleFonts.poppins(fontSize: 11, color: colors.brandPrimary, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -476,191 +537,128 @@ class AcademicCalendarPage extends StatelessWidget {
   }
 }
 
-class VirtualIdPage extends StatelessWidget {
-  const VirtualIdPage({super.key});
+// --- 14格独立小圆角正方形周进度 ---
+class _WeekGridProgress extends StatelessWidget {
+  const _WeekGridProgress();
 
   @override
   Widget build(BuildContext context) {
-    // 1. 同样在这里拿到你的颜色包
     final colors = context.colors;
+    const int totalWeeks = 14;
+    const int currentWeek = 8;
 
-    return Scaffold(
-      backgroundColor: colors.brandPrimary, // 替换 kPrimaryBlue
-      appBar: AppBar(
-        backgroundColor: colors.brandPrimary, // 替换 kPrimaryBlue
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "My Virtual ID",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))
+        ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Container(
-            width: double.infinity,
-            height: 600,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFE3F2FD),
-                  Color(0xFF90CAF9),
-                  Color(0xFF42A5F5)
-                ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Week Progress", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: colors.primaryText, fontSize: 13)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.brandPrimary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "Week $currentWeek / $totalWeeks",
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: colors.brandPrimary, fontSize: 11),
+                ),
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 15,
-                  offset: Offset(0, 10),
-                )
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Image.network(
-                            "https://seeklogo.com/images/K/kementerian-pengajian-tinggi-malaysia-logo-5095893796-seeklogo.com.png",
-                            height: 40,
-                            errorBuilder: (c, e, s) => const Icon(
-                              Icons.account_balance,
-                              size: 40,
-                              color: Colors.orange,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Image.network(
-                            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/UTHM_Logo.png/1200px-UTHM_Logo.png",
-                            height: 50,
-                            errorBuilder: (c, e, s) => Icon( // 删掉 const，因为 colors 是动态的
-                              Icons.school,
-                              size: 50,
-                              color: colors.brandPrimary, // 替换 kPrimaryBlue
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                  const Spacer(flex: 1),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 120,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.white, width: 2),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/me.jpg'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              for (int i = 0; i < totalWeeks; i++) ...[
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: i < currentWeek ? colors.brandPrimary : colors.borderColor.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              "MySISWA",
-                              style: GoogleFonts.poppins(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF1A237E),
-                                shadows: [
-                                  const Shadow(
-                                    color: Colors.white,
-                                    offset: Offset(1, 1),
-                                    blurRadius: 2,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "AI240160",
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
                     ),
                   ),
-                  Text(
-                    "LEE ROU",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const Spacer(flex: 2),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE0E0E0),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.grey),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFD4AF37),
-                              Color(0xFFF7EF8A),
-                              Color(0xFFD4AF37)
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: const Icon(Icons.memory, color: Colors.black54),
-                      ),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        padding: const EdgeInsets.all(4),
-                        color: Colors.white,
-                        child: const Icon(
-                          Icons.qr_code_2,
-                          size: 70,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
+                if (i < totalWeeks - 1) const SizedBox(width: 5),
+              ]
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- 四合一数据栏 ---
+class _StatsRowBar extends StatelessWidget {
+  const _StatsRowBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _buildStatItem(context, "Current\nCPA", "3.85"),
+        const SizedBox(width: 12),
+        _buildStatItem(context, "Current\nGPA", "3.90"),
+        const SizedBox(width: 12),
+        _buildStatItem(context, "Obtained\nCredit", "70/122"),
+        const SizedBox(width: 12),
+        _buildStatItem(context, "Current\nSession","Y2S2"),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(BuildContext context, String label, String value, {String? subLabel}) {
+    final colors = context.colors;
+    return Expanded(
+      child: AspectRatio(
+        aspectRatio: 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                  label,
+                  style: GoogleFonts.poppins(fontSize: 9, height: 1.1, color: colors.secondaryText, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                  maxLines: 2
               ),
-            ),
+              const SizedBox(height: 2),
+              Text(
+                  value,
+                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: colors.primaryText),
+                  textAlign: TextAlign.center,
+                  maxLines: 1
+              ),
+              if (subLabel != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                    subLabel,
+                    style: GoogleFonts.poppins(fontSize: 9, color: colors.secondaryText, fontWeight: FontWeight.w500)
+                ),
+              ]
+            ],
           ),
         ),
       ),
