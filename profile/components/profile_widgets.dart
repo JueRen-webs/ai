@@ -2,9 +2,126 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:uthm/theme/app_colors.dart';
-import 'virtual_id_page.dart'; // 引入同一层的 Virtual ID 页面
+import 'virtual_id_page.dart';
 
-// --- 带有光圈和 Hover 效果的专属设置按钮 ---
+// =======================================================
+//   🔥 扁平化身份信息页眉（全面引用颜色库重构版）
+// =======================================================
+class FlatIdentityHeader extends StatelessWidget {
+  const FlatIdentityHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // 严格从 Theme Extension 获取颜色
+    final colors = context.colors;
+
+    return Center(
+      child: Column(
+        children: [
+          // -----------------------------------------------
+          // 1. 大头像（边框、衬底全面引用颜色库）
+          // -----------------------------------------------
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              // 💡 替换：使用颜色库的面色（轻度透明）作为高光衬底
+              color: colors.surface.withOpacity(0.2),
+              border: Border.all(
+                color: colors.surface.withOpacity(0.5),
+                width: 1.5,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromRGBO(0, 0, 0, 0.15),
+                  blurRadius: 25,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              radius: 45,
+              backgroundColor: colors.borderColor, // 💡 替换：背景由颜色库驱动
+              backgroundImage: const AssetImage('assets/me.jpg'),
+              //child: Icon(Icons.person, size: 60, color: colors.surface.withOpacity(0.3)), // 💡 替换：图标色引用颜色库
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // -----------------------------------------------
+          // 2. 文本信息区域（全面引用颜色库）
+          // -----------------------------------------------
+          // 名字
+          Text(
+            "LEE ROU",
+            style: GoogleFonts.poppins(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+              color: colors.surface, // 💡 替换：严格使用颜色库面色（白）
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          // 学号
+          Text(
+            "(Matric No: AI230199)",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: colors.surface.withOpacity(0.85), // 💡 替换：严格使用颜色库面色
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 10),
+          // -----------------------------------------------
+          // 3. 虚拟 ID 按钮（全面引用颜色库）
+          // -----------------------------------------------
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const VirtualIdPage()),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: colors.surface.withOpacity(0.15), // 💡 替换：按钮底色引用颜色库
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colors.surface.withOpacity(0.35), // 💡 替换：按钮边框引用颜色库
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.qr_code_scanner, size: 15, color: colors.surface), // 💡 替换
+                  const SizedBox(width: 8),
+                  Text(
+                    "My Virtual ID",
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: colors.surface, // 💡 替换
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =======================================================
+//   🔥 悬浮设置按钮（全面引用颜色库重构版）
+// =======================================================
 class SettingsButton extends StatefulWidget {
   const SettingsButton({super.key});
   @override
@@ -15,83 +132,30 @@ class _SettingsButtonState extends State<SettingsButton> {
   bool _isHovering = false;
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors; // 获取颜色库
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: GestureDetector(
-        onTap: () { /* 点击事件 */ },
+        onTap: () { /* 处理设置点击 */ },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: _isHovering ? Colors.white.withOpacity(0.3) : Colors.white.withOpacity(0.15),
-            border: Border.all(
-              color: Colors.white.withOpacity(_isHovering ? 0.8 : 0.4),
-              width: 1.5,
-            ),
-            boxShadow: _isHovering ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))] : [],
+            // 💡 替换：动静态背景色全部采用颜色库的 surface 动态调配
+            color: _isHovering ? colors.surface.withOpacity(0.28) : colors.surface.withOpacity(0.14),
+            border: Border.all(color: colors.surface.withOpacity(0.4), width: 1.5), // 💡 替换
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 4)),
+            ],
           ),
-          child: const Icon(Icons.settings_outlined, color: Colors.white, size: 22),
-        ),
-      ),
-    );
-  }
-}
-
-// --- 玻璃拟物化身份卡片 ---
-class GlassIdentityCard extends StatelessWidget {
-  const GlassIdentityCard({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const VirtualIdPage()));
-      },
-      child: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 10))],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+          child: ClipOval(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(radius: 30, backgroundColor: colors.background, backgroundImage: const AssetImage('assets/me.jpg')),
-                    const SizedBox(height: 8),
-                    Text("LEE ROU", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: colors.brandPrimary)),
-                    const SizedBox(height: 2),
-                    Text("Matrics No: AI230199", style: GoogleFonts.poppins(fontSize: 12, color: colors.primaryText.withOpacity(0.7))),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: colors.brandPrimary.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.qr_code_2, size: 14, color: colors.brandPrimary),
-                          const SizedBox(width: 4),
-                          Text("My Virtual ID", style: GoogleFonts.poppins(fontSize: 11, color: colors.brandPrimary, fontWeight: FontWeight.w600)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Icon(Icons.settings_outlined, color: colors.surface, size: 24), // 💡 替换
             ),
           ),
         ),
@@ -100,20 +164,21 @@ class GlassIdentityCard extends StatelessWidget {
   }
 }
 
-// --- 14格独立小圆角正方形周进度 ---
+// =======================================================
+//   以下卡片组件（进度条、状态栏）原本就已严格引用颜色库，保持原样
+// =======================================================
 class WeekGridProgress extends StatelessWidget {
   const WeekGridProgress({super.key});
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    const int totalWeeks = 14;
-    const int currentWeek = 8;
+    const int totalWeeks = 14; const int currentWeek = 8;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))]
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colors.borderColor, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +194,7 @@ class WeekGridProgress extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Row(
             children: [
               for (int i = 0; i < totalWeeks; i++) ...[
@@ -138,7 +203,7 @@ class WeekGridProgress extends StatelessWidget {
                     aspectRatio: 1.0,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: i < currentWeek ? colors.brandPrimary : colors.brandPrimary.withOpacity(0.1),
+                        color: i < currentWeek ? colors.brandPrimary : colors.borderColor.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -154,10 +219,8 @@ class WeekGridProgress extends StatelessWidget {
   }
 }
 
-// --- 四合一数据栏 ---
 class StatsRowBar extends StatelessWidget {
   const StatsRowBar({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -168,7 +231,7 @@ class StatsRowBar extends StatelessWidget {
         const SizedBox(width: 12),
         _buildStatItem(context, "Obtained\nCredit", "70/122"),
         const SizedBox(width: 12),
-        _buildStatItem(context, "Current\nSession","Y2S2"),
+        _buildStatItem(context, "Current\nSession", "Y2S2"),
       ],
     );
   }
@@ -181,15 +244,15 @@ class StatsRowBar extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
           decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))]
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: colors.borderColor, width: 0.5),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(label, style: GoogleFonts.poppins(fontSize: 9, height: 1.1, color: colors.secondaryText, fontWeight: FontWeight.w600), textAlign: TextAlign.center, maxLines: 2),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(value, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: colors.primaryText), textAlign: TextAlign.center, maxLines: 1),
               if (subLabel != null) ...[
                 const SizedBox(height: 2),

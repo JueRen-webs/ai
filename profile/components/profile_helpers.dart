@@ -17,11 +17,14 @@ class ProfileHelpers {
   }
 
   // --- 卡片通用阴影和圆角 ---
+  // --- 卡片通用样式 (严格遵循 Apple Utility Cards 规范) ---
   static BoxDecoration buildCardDecoration(BuildContext context) {
     return BoxDecoration(
       color: context.colors.surface,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))],
+      // Apple 规范: 实用卡片采用 18px 圆角 (rounded.lg)
+      borderRadius: BorderRadius.circular(18),
+      // Apple 规范: 彻底去除弥散阴影，改用 0.5px 的极细边框
+      border: Border.all(color: context.colors.borderColor, width: 0.5),
     );
   }
 

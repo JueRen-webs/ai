@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uthm/theme/app_colors.dart';
 
-// --- 引入我们刚刚拆分的所有组件 ---
+// --- 导入组件 ---
 import 'components/profile_widgets.dart';
 import 'components/profile_cards.dart';
 import 'components/profile_buttons.dart';
@@ -15,88 +15,80 @@ class ProfilePage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: Stack(
-        children: [
-          // ==========================================
-          // 图层 1：可滑动的主体内容（包含背景）
-          // ==========================================
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Stack(
-              clipBehavior: Clip.none, // 允许超出边界绘制，掩盖下拉白边
-              children: [
-                // 下拉回弹防白边补丁块
-                Positioned(
-                  top: -1000,
-                  left: 0,
-                  right: 0,
-                  height: 1000,
-                  child: Container(color: colors.brandPrimary),
-                ),
-
-                // 跟着页面一起滑动的渐变背景
-                Container(
-                  height: 240,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [colors.brandPrimary, colors.background],
-                      stops: const [0.4, 1.0],
-                    ),
-                  ),
-                ),
-
-                // 主体 UI 排版，现在变得极其清爽！
-                SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        SizedBox(height: 60), // 给右上角的悬浮设置按钮留出空间
-
-                        GlassIdentityCard(),
-                        SizedBox(height: 18),
-
-                        WeekGridProgress(),
-                        SizedBox(height: 18),
-
-                        StatsRowBar(),
-                        SizedBox(height: 18),
-
-                        StudentDetailsCard(),
-                        SizedBox(height: 18),
-
-                        NextOfKinCard(),
-                        SizedBox(height: 18),
-
-                        ContactUsCard(),
-                        SizedBox(height: 24),
-
-                        AcademicCalendarButton(),
-                        SizedBox(height: 16),
-
-                        LogoutButton(),
-                        SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+      // 🔥 核心修改：直接将 SingleChildScrollView 作为 body，去掉外层的 Stack 钉子
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(), // 只能往下滑动，不向上拉伸
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // 1. 顶部安全区域底色补丁
+            Positioned(
+              top: -500, left: 0, right: 0, height: 500,
+              child: Container(color: colors.brandPrimary),
             ),
-          ),
 
-          // ==========================================
-          // 图层 2：固定在右上角的设置按钮 (悬浮窗)
-          // ==========================================
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            right: 20,
-            child: const SettingsButton(),
-          ),
-        ],
+            // 2. 蓝色区块背景 (360高度 + 32px弧度)
+            Container(
+              height: 290,
+              decoration: BoxDecoration(
+                color: colors.brandPrimary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(18),
+                  bottomRight: Radius.circular(18),
+                ),
+              ),
+            ),
+
+            // 3. 主体 UI 内容排版
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 25), // 顶部紧凑留白
+
+                    const FlatIdentityHeader(),
+
+                    const SizedBox(height: 15), // 弧边与下方卡片的精准间距
+
+                    const WeekGridProgress(),
+                    const SizedBox(height: 10),
+
+                    const StatsRowBar(),
+                    const SizedBox(height: 10),
+
+                    const StudentDetailsCard(),
+                    const SizedBox(height: 10),
+
+                    const NextOfKinCard(),
+                    const SizedBox(height: 10),
+
+                    const ContactUsCard(),
+                    const SizedBox(height: 24),
+
+                    const AcademicCalendarButton(),
+                    const SizedBox(height: 10),
+
+                    const LogoutButton(),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+
+            // ==========================================
+            // 🔥 4. 设置按钮 (现在它被放进了滑动的 Stack 内部)
+            // 它被放置在蓝色背景的右上角，当你往下滑，它就会跟着滑走！
+            // ==========================================
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 12, // 距离屏幕顶部的安全距离
+              right: 20,
+              child: const SettingsButton(),
+            ),
+          ],
+        ),
       ),
     );
   }

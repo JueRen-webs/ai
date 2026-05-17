@@ -63,28 +63,28 @@ class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-/// Light theme
+/// Light theme (Strictly following Apple Design Guidelines)
 const lightColors = AppColors(
-  background: Color(0xFFF4F6FC),   // kBackgroundColor
-  surface: Colors.white,           // 所有的卡片底色
-  primaryText: Colors.black87,     // kTextBlack
-  secondaryText: Colors.grey,      // kTextGrey
-  brandPrimary: Color(0xFF0422A7), // kPrimaryBlue
-  borderColor: Color(0xFFEEEEEE),  // kBorderColor
-  error: Color(0xFFC62828),        // Log Out 红色
-  cardAlt: Color(0xFFF9FAFB),      // Contact Card 背景
+  background: Color(0xFFF2F2F7),   // Apple 经典的系统级浅灰背景
+  surface: Color(0xFFFFFFFF),      // 纯白卡片，突出博物馆画廊感
+  primaryText: Color(0xFF1D1D1F),  // Apple 官方深色文本 (比纯黑更柔和)
+  secondaryText: Color(0xFF86868B),// Apple 官方次级文本灰
+  brandPrimary: Color(0xFF0422A7), // 保持 UTHM 原有主题蓝不变！
+  borderColor: Color(0xFFE5E5EA),  // Apple 极细的浅灰边框色
+  error: Color(0xFFFF3B30),        // Apple 官方系统红 (用于Log Out等)
+  cardAlt: Color(0xFFF9F9FB),      // 稍微带一点灰的次级卡片色
 );
 
-/// Dark theme
+/// Dark theme (Apple iOS Dark Mode Standard)
 const darkColors = AppColors(
-  background: Color(0xFF121212),
-  surface: Color(0xFF1E1E1E),
-  primaryText: Colors.white,
-  secondaryText: Colors.white60,
-  brandPrimary: Color(0xFF4D73FF), // 稍微亮一点的蓝色
-  borderColor: Color(0xFF333333),
-  error: Color(0xFFCF6679),
-  cardAlt: Color(0xFF2C2C2C),
+  background: Color(0xFF000000),   // Apple 深色模式纯黑背景
+  surface: Color(0xFF1C1C1E),      // Apple 深色模式卡片底色
+  primaryText: Color(0xFFF5F5F7),  // Apple 深色模式主文本
+  secondaryText: Color(0xFF86868B),// Apple 深色模式次级文本
+  brandPrimary: Color(0xFF4D73FF), // 保持原有稍微亮一点的蓝色不变！
+  borderColor: Color(0xFF38383A),  // Apple 深色模式边框色
+  error: Color(0xFFFF453A),        // Apple 深色模式红
+  cardAlt: Color(0xFF2C2C2E),      // 深色模式次级卡片
 );
 
 extension AppThemeExtension on BuildContext {

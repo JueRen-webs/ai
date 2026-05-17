@@ -1,5 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+// 确保引入了你的主题颜色路径
 import 'package:uthm/theme/app_colors.dart';
 
 class VirtualIdPage extends StatelessWidget {
@@ -7,189 +10,223 @@ class VirtualIdPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. 同样在这里拿到你的颜色包
     final colors = context.colors;
 
     return Scaffold(
-      backgroundColor: colors.brandPrimary, // 替换 kPrimaryBlue
-      appBar: AppBar(
-        backgroundColor: colors.brandPrimary, // 替换 kPrimaryBlue
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "My Virtual ID",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Container(
-            width: double.infinity,
-            height: 600,
+      // 使用 Stack 确保背景和内容层叠
+      body: Stack(
+        children: [
+          // ==========================================
+          // 1. 渐变背景层 (固定不动)
+          // ==========================================
+          Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFE3F2FD),
-                  Color(0xFF90CAF9),
-                  Color(0xFF42A5F5)
+                  colors.brandPrimary,
+                  const Color(0xFF6A1B9A).withOpacity(0.6),
+                  colors.brandPrimary.withOpacity(0.8),
                 ],
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 15,
-                  offset: Offset(0, 10),
-                )
+            ),
+          ),
+
+          // 装饰光球
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.15,
+            left: -70,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.15),
+              ),
+            ),
+          ),
+
+          // ==========================================
+          // 2. UI 内容层
+          // ==========================================
+          SafeArea(
+            child: Column(
+              children: [
+                // 顶部导航 (返回按钮)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      Text(
+                          "My Virtual ID",
+                          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)
+                      ),
+                    ],
+                  ),
+                ),
+
+                // --- 核心：去除 ScrollView，让内容完全固定 ---
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+                    child: Center(
+                      // 使用 FittedBox 确保如果屏幕太小，卡片会自动缩放一点点而不会爆屏报错
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: _buildGlassIdCard(context),
+                      ),
+                    ),
+                  ),
+                ),
+                // 底部留白，让卡片视觉上更居中
+                const SizedBox(height: 20),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Image.network(
-                            "https://seeklogo.com/images/K/kementerian-pengajian-tinggi-malaysia-logo-5095893796-seeklogo.com.png",
-                            height: 40,
-                            errorBuilder: (c, e, s) => const Icon(
-                              Icons.account_balance,
-                              size: 40,
-                              color: Colors.orange,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Image.network(
-                            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/UTHM_Logo.png/1200px-UTHM_Logo.png",
-                            height: 50,
-                            errorBuilder: (c, e, s) => Icon( // 删掉 const，因为 colors 是动态的
-                              Icons.school,
-                              size: 50,
-                              color: colors.brandPrimary, // 替换 kPrimaryBlue
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                  const Spacer(flex: 1),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 120,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.white, width: 2),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/me.jpg'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              "MySISWA",
-                              style: GoogleFonts.poppins(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF1A237E),
-                                shadows: [
-                                  const Shadow(
-                                    color: Colors.white,
-                                    offset: Offset(1, 1),
-                                    blurRadius: 2,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "AI240160",
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 构建玻璃 ID 卡片
+  Widget _buildGlassIdCard(BuildContext context) {
+    final colors = context.colors;
+
+    // 设定一个固定宽度，这样在 FittedBox 里效果最好
+    return Container(
+      width: 340,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 顶部 Logo 与 标题
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset(
+                      'assets/logo-uthm-web.png',
+                      height: 35,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, size: 35, color: Colors.white),
                     ),
-                  ),
-                  Text(
-                    "LEE ROU",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                    Text(
+                        "STUDENT ID",
+                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2)
                     ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+
+                // 头像区域
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.8), width: 2),
                   ),
-                  const Spacer(flex: 2),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  child: CircleAvatar(
+                    radius: 55,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundImage: const AssetImage('assets/me.jpg'),
+                   //child: const Icon(Icons.person, size: 50, color: Colors.white30), // 备用图标
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // 核心资料
+                Text("LEE ROU", style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: colors.brandPrimary.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                      "AI230199",
+                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: colors.brandPrimary, letterSpacing: 1)
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // 详情列表
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 50,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE0E0E0),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.grey),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFD4AF37),
-                              Color(0xFFF7EF8A),
-                              Color(0xFFD4AF37)
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: const Icon(Icons.memory, color: Colors.black54),
-                      ),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        padding: const EdgeInsets.all(4),
-                        color: Colors.white,
-                        child: const Icon(
-                          Icons.qr_code_2,
-                          size: 70,
-                          color: Colors.black,
-                        ),
-                      ),
+                      _buildDetailRow("Faculty", "FSKTM"),
+                      const Divider(height: 20, color: Colors.black12),
+                      _buildDetailRow("Course", "Bachelor of Computer Science\n(Multimedia Computing)"),
+                      const Divider(height: 20, color: Colors.black12),
+                      _buildDetailRow("Session Enroll", "2023/2024"),
                     ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 30),
+
+                // 二维码
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.qr_code_2, size: 90, color: Colors.black87),
+                ),
+                const SizedBox(height: 10),
+                Text("Scan to Verify", style: GoogleFonts.poppins(fontSize: 11, color: Colors.black45, fontWeight: FontWeight.bold)),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+            label.toUpperCase(),
+            style: GoogleFonts.poppins(fontSize: 9, color: Colors.black54, fontWeight: FontWeight.w800, letterSpacing: 0.5)
+        ),
+        const SizedBox(height: 2),
+        Text(
+            value,
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w600, height: 1.2)
+        ),
+      ],
     );
   }
 }
